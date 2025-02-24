@@ -29,4 +29,10 @@ public class WorkoutRepository
             "INSERT INTO Workouts (Name, Sets, Reps) VALUES (@Name, @Sets, @Reps)",
             workout);
     }
+
+    public async Task<int> DeleteWorkout(int id)
+    {
+        using var db = Connection;
+        return await db.ExecuteAsync("DELETE FROM Workouts WHERE Id = @Id", new { Id = id });
+    }
 }

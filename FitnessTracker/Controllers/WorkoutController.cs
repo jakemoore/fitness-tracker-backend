@@ -30,4 +30,11 @@ public class WorkoutController : ControllerBase
         await _repo.AddWorkout(workout);
         return Ok(new { Message = "Workout added!" });
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteWorkout(int id)
+    {
+        await _repo.DeleteWorkout(id);
+        return Ok(new { Message = "Workout deleted!" });
+    }
 }
