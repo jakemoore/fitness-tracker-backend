@@ -24,10 +24,8 @@ public class WorkoutsController : ControllerBase
     {
         var user = HttpContext.User;
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
+        if (string.IsNullOrEmpty(userId))
             return Unauthorized("User not found.");
-        }
 
         var workouts = await _repo.GetWorkouts(userId);
         return Ok(workouts);
@@ -40,10 +38,8 @@ public class WorkoutsController : ControllerBase
 
         var user = HttpContext.User;
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
+        if (string.IsNullOrEmpty(userId))
             return Unauthorized("User not found.");
-        }
 
         var workout = new Workout
         {
@@ -63,10 +59,8 @@ public class WorkoutsController : ControllerBase
     {
         var user = HttpContext.User;
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
+        if (string.IsNullOrEmpty(userId))
             return Unauthorized("User not found.");
-        }
 
         await _repo.DeleteWorkout(userId, id);
         return Ok(new { Message = "Workout deleted!" });
@@ -77,9 +71,7 @@ public class WorkoutsController : ControllerBase
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
-        {
             return Unauthorized("User not found.");
-        }
 
         var workoutLog = new WorkoutLog
         {
@@ -101,9 +93,7 @@ public class WorkoutsController : ControllerBase
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized("User ID not found in token.");
-        }
+            return Unauthorized("User not found.");
 
         var workoutLog = await _repo.GetWorkoutLogById(userId, id);
         if (workoutLog == null)
@@ -114,15 +104,13 @@ public class WorkoutsController : ControllerBase
     }
 
     [HttpGet("history")]
-    public async Task<IActionResult> GetWorkoutHistory()
+    public async Task<IActionResult> GetWorkoutHistory([FromQuery] int page = 1, [FromQuery] int limit = 10)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized("User not found.");
 
-        var history = await _repo.GetWorkoutHistory(userId);
+        var history = await _repo.GetWorkoutHistory(userId, page, limit);
         return Ok(history);
     }
 }

@@ -55,11 +55,15 @@ public class WorkoutRepository
         return await connection.QueryFirstOrDefaultAsync<WorkoutLog>(sql, new { Id = id, UserId = userId });
     }
 
-    public async Task<IEnumerable<WorkoutLog>> GetWorkoutHistory(string userId)
+    public async Task<IEnumerable<WorkoutLog>> GetWorkoutHistory(string userId, int page, int limit)
     {
         using var connection = new NpgsqlConnection(_connectionString);
-        var query = "SELECT * FROM WorkoutLogs WHERE UserId = @UserId ORDER BY DateCompleted DESC";
-        
-        return await connection.QueryAsync<WorkoutLog>(query, new { UserId = userId });
+        var offset = (page - 1) * limit;
+        var query = @"SELECT * FROM WorkoutLogs 
+                    WHERE UserId = @UserId
+                    ORDER BY DateCompleted DESC
+                    LIMIT @Limit OFFSET @Offset";
+
+        return await connection.QueryAsync<WorkoutLog>(query, new { UserId = userId, Limit = limit, Offset = offset });
     }
 }
