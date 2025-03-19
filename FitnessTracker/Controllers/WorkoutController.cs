@@ -103,14 +103,14 @@ public class WorkoutsController : ControllerBase
         return Ok(workoutLog);
     }
 
-    [HttpGet("history")]
-    public async Task<IActionResult> GetWorkoutHistory([FromQuery] int page = 1, [FromQuery] int limit = 10)
+    [HttpGet("logs")]
+    public async Task<IActionResult> GetWorkoutLogs([FromQuery] int page = 1, [FromQuery] int limit = 10)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return Unauthorized("User not found.");
 
-        var history = await _repo.GetWorkoutHistory(userId, page, limit);
-        return Ok(history);
+        var workoutLogs = await _repo.GetWorkoutLogs(userId, page, limit);
+        return Ok(workoutLogs);
     }
 }

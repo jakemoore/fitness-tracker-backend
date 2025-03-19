@@ -1,5 +1,6 @@
 using System.Data;
 using Dapper;
+using FitnessTracker.DTOs;
 using FitnessTracker.Models;
 using Npgsql;
 
@@ -55,15 +56,27 @@ public class WorkoutRepository
         return await connection.QueryFirstOrDefaultAsync<WorkoutLog>(sql, new { Id = id, UserId = userId });
     }
 
-    public async Task<IEnumerable<WorkoutLog>> GetWorkoutHistory(string userId, int page, int limit)
+    public async Task<WorkoutLogsDto> GetWorkoutLogs(string userId, int page, int limit)
     {
         using var connection = new NpgsqlConnection(_connectionString);
         var offset = (page - 1) * limit;
-        var query = @"SELECT * FROM WorkoutLogs 
-                    WHERE UserId = @UserId
+
+        var query = @"SELECT WL.Id, W.Name AS WorkoutName, WL.DateCompleted, WL.Sets, WL.Reps, WL.Weight, WL.Notes
+                    FROM WorkoutLogs WL
+                    INNER JOIN Workouts W ON WL.WorkoutId = W.Id
+                    WHERE WL.UserId = @UserId
                     ORDER BY DateCompleted DESC
                     LIMIT @Limit OFFSET @Offset";
+        var totalQuery = "SELECT COUNT(*) FROM WorkoutLogs WHERE UserId = @UserId";
 
-        return await connection.QueryAsync<WorkoutLog>(query, new { UserId = userId, Limit = limit, Offset = offset });
+        var workoutLogs = await connection.QueryAsync<WorkoutLogDetailDto>(query, new { UserId = userId, Limit = limit, Offset = offset });
+        var totalLogs = await connection.ExecuteScalarAsync<int>(totalQuery, new { UserId = userId });
+
+        return new WorkoutLogsDto
+        {
+            WorkoutLogs = workoutLogs,
+            TotalLogs = totalLogs,
+            TotalPages = (int)Math.Ceiling(totalLogs / (double)limit)
+        };
     }
 }
