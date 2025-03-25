@@ -14,6 +14,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader())
 );
 builder.Services.AddSingleton<WorkoutRepository>();
+builder.Services.AddSingleton<DashboardRepository>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
