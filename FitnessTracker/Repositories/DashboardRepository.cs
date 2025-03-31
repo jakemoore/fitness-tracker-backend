@@ -45,18 +45,34 @@ public class DashboardRepository
                 FROM WorkoutLogs
                 WHERE UserId = @UserId
             ),
-            StreakCalculation AS (
+            DatesWithGroups AS (
                 SELECT 
                     WorkoutDate,
                     WorkoutDate - INTERVAL '1 day' * ROW_NUMBER() OVER (ORDER BY WorkoutDate) AS StreakGroup
                 FROM WorkoutDates
+            ),
+            MostRecentDate AS (
+                SELECT MAX(WorkoutDate) AS LatestWorkoutDate
+                FROM WorkoutDates
+            ),
+            CurrentStreakCheck AS (
+                SELECT 
+                    m.LatestWorkoutDate,
+                    CASE 
+                        -- If latest workout was yesterday or today, streak is active
+                        WHEN m.LatestWorkoutDate >= CURRENT_DATE - INTERVAL '1 day' THEN 
+                            (SELECT StreakGroup FROM DatesWithGroups WHERE WorkoutDate = m.LatestWorkoutDate)
+                        -- Otherwise streak is broken
+                        ELSE NULL
+                    END AS ActiveStreakGroup
+                FROM MostRecentDate m
             )
             SELECT 
-                COUNT(*) AS CurrentStreak
-            FROM StreakCalculation
-            GROUP BY StreakGroup
-            ORDER BY CurrentStreak DESC
-            LIMIT 1;";
+                CASE 
+                    WHEN c.ActiveStreakGroup IS NULL THEN 0
+                    ELSE (SELECT COUNT(*) FROM DatesWithGroups WHERE StreakGroup = c.ActiveStreakGroup)
+                END AS CurrentStreak
+            FROM CurrentStreakCheck c;";
 
         var currentStreak = await db.ExecuteScalarAsync<int>(currentStreakSql, new { UserId = userId });
         
