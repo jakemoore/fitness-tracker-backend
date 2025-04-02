@@ -9,7 +9,7 @@ namespace FitnessTracker.Controllers;
 
 [Authorize] // Requires a valid Firebase JWT
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class WorkoutsController : ControllerBase
 {
     private readonly WorkoutRepository _repo;

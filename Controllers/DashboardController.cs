@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [Authorize] // Requires a valid Firebase JWT
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class DashboardController : ControllerBase
 {
     private readonly DashboardRepository _repo;
